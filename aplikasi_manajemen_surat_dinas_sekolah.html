@@ -1,0 +1,793 @@
+<!-- ... eslint-disable -->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Manajemen Surat Dinas Sekolah</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        @media print {
+            body { background: white; padding: 0; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .a4-page { box-shadow: none !important; margin: 0 !important; width: 100% !important; }
+        }
+        /* Custom scrollbar for app ergonomics */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased h-screen flex flex-col overflow-hidden">
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-white border-b border-slate-200 px-6 py-3 flex items-center justify-between no-print z-20 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="bg-indigo-600 text-white p-2 rounded-xl shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+            </div>
+            <div>
+                <h1 class="font-bold text-lg text-slate-800 leading-tight">Aplikasi Manajemen Surat Dinas Sekolah</h1>
+                <p class="text-xs text-slate-500">Sistem Pembuatan & Pengarsipan Dokumen Resmi Terpadu</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-3">
+            <button onclick="window.print()" class="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+                </svg>
+                <span>Cetak / Cetak PDF</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main App Workspace -->
+    <div class="flex-1 flex overflow-hidden">
+        
+        <!-- Left Panel: Form Control & Builder -->
+        <div class="w-full lg:w-[480px] bg-white border-r border-slate-200 flex flex-col no-print z-10 shadow-lg">
+            <div class="p-4 border-b border-slate-100 bg-slate-50 flex items-center justify-between">
+                <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wider">Pengaturan Dokumen</h2>
+                <span class="text-xs bg-indigo-100 text-indigo-700 font-medium px-2.5 py-1 rounded-full">Live Editor</span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-5 space-y-5">
+                
+                <!-- Jenis Surat Selector -->
+                <div class="space-y-1.5">
+                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wide">Jenis Surat</label>
+                    <select id="input-jenis-surat" onchange="onJenisSuratChange()" class="w-full text-sm border border-slate-300 rounded-lg p-2.5 bg-slate-50 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                        <option value="1">Surat Keterangan</option>
+                        <option value="3">Surat Perintah Tugas</option>
+                        <option value="4">Surat Keputusan (SK)</option>
+                        <option value="5">Surat Pengantar</option>
+                        <option value="6">Surat Perjanjian Kerja Sama (MoU)</option>
+                        <option value="12">Surat Perjanjian Kontrak Kerja (Trainee/Staf)</option>
+                        <option value="9">Surat Pemberitahuan</option>
+                        <option value="10">Surat Undangan</option>
+                        <option value="11">Surat Permohonan</option>
+                    </select>
+                </div>
+
+                <!-- KOP Surat Section -->
+                <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h3 class="font-semibold text-sm text-slate-700">Kop Surat</h3>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-xs text-slate-500">Nama Instansi / Yayasan</label>
+                            <input type="text" id="input-yayasan" value="YAYASAN KELUARGA KITA SUNGAI RENGIT" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white" oninput="updatePreview()">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500">Nama Lembaga / Sekolah</label>
+                            <input type="text" id="input-lembaga" value="SEKOLAH ISLAM TERPADU QUDWAH SUNGAI RENGIT" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white" oninput="updatePreview()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs text-slate-500">NPSN</label>
+                                <input type="text" id="input-npsn" value="69987654" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white" oninput="updatePreview()">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500">Telepon</label>
+                                <input type="text" id="input-telp" value="(0711) 765432" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white" oninput="updatePreview()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500">Alamat Lengkap</label>
+                            <input type="text" id="input-alamat-lembaga" value="Jl. Palembang - Betung Km. 32 Sungai Rengit Kec. Talang Kelapa Banyuasin" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white" oninput="updatePreview()">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500">Email / Website</label>
+                            <input type="text" id="input-email" value="admin@sditqudwah.sch.id" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white" oninput="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Umum: Nomor & Tanggal -->
+                <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h3 class="font-semibold text-sm text-slate-700">Nomor & Tanggal Surat</h3>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-xs text-slate-500">Nomor Surat</label>
+                            <input type="text" id="input-nomor-surat" value="042.B/SDITQ-YSITQ/XI/2026" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white font-mono" oninput="updatePreview()">
+                        </div>
+                        <div id="wrapper-tentang">
+                            <label class="block text-xs text-slate-500">Tentang / Perihal</label>
+                            <input type="text" id="input-tentang" value="PEMBENTUKAN PANITIA ASESMEN AKHIR SEMESTER" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white font-semibold" oninput="updatePreview()">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500">Tanggal Surat</label>
+                            <input type="date" id="input-tanggal" value="2026-10-02" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white" onchange="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= SURAT KEPUTUSAN BUILDER ================= -->
+                <div id="builder-sk" class="space-y-4 bg-indigo-50 p-4 rounded-xl border border-indigo-200 hidden">
+                    <h3 class="font-semibold text-sm text-indigo-900">Format Surat Keputusan (SK)</h3>
+                    
+                    <!-- Menimbang -->
+                    <div class="space-y-2 bg-white p-3 rounded-lg border border-indigo-100">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-semibold text-slate-700">Menimbang:</label>
+                            <button type="button" onclick="addSkMenimbangItem()" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700">+ Tambah</button>
+                        </div>
+                        <div id="sk-menimbang-container" class="space-y-2">
+                            <div class="flex items-center space-x-2">
+                                <input type="text" value="Bahwa dalam rangka memperlancar pelaksanaan proses belajar mengajar..." class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white sk-menimbang-input" oninput="updatePreview()">
+                                <button type="button" onclick="this.parentElement.remove(); updatePreview();" class="text-red-600 text-xs px-2">Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mengingat -->
+                    <div class="space-y-2 bg-white p-3 rounded-lg border border-indigo-100">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-semibold text-slate-700">Mengingat:</label>
+                            <button type="button" onclick="addSkMengingatItem()" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700">+ Tambah</button>
+                        </div>
+                        <div id="sk-mengingat-container" class="space-y-2">
+                            <div class="flex items-center space-x-2">
+                                <input type="text" value="Undang-Undang Nomor 20 Tahun 2003 tentang Sistem Pendidikan Nasional." class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white sk-mengingat-input" oninput="updatePreview()">
+                                <button type="button" onclick="this.parentElement.remove(); updatePreview();" class="text-red-600 text-xs px-2">Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Memperhatikan (Opsional) -->
+                    <div class="space-y-2 bg-white p-3 rounded-lg border border-indigo-100">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-semibold text-slate-700">Memperhatikan (Opsional):</label>
+                            <button type="button" onclick="addSkMemperhatikanItem()" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700">+ Tambah</button>
+                        </div>
+                        <div id="sk-memperhatikan-container" class="space-y-2"></div>
+                    </div>
+
+                    <!-- Diktum Memutuskan / Menetapkan -->
+                    <div class="space-y-2 bg-white p-3 rounded-lg border border-indigo-100">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-semibold text-slate-700">Diktum (PERTAMA, KEDUA, dst):</label>
+                            <button type="button" onclick="addDiktumItem()" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700">+ Tambah Diktum</button>
+                        </div>
+                        <div id="diktum-container" class="space-y-2">
+                            <div class="flex items-center space-x-2">
+                                <input type="text" value="PERTAMA" class="w-24 text-xs font-bold border border-slate-300 rounded p-1.5 bg-white diktum-label" oninput="updatePreview()">
+                                <input type="text" value="Pembagian tugas guru dan karyawan dalam kegiatan proses belajar mengajar." class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white diktum-val" oninput="updatePreview()">
+                                <button type="button" onclick="this.parentElement.remove(); updatePreview();" class="text-red-600 text-xs px-2">Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lampiran SK Builder -->
+                    <div class="space-y-2 bg-white p-3 rounded-lg border border-indigo-100">
+                        <div class="flex justify-between items-center">
+                            <label class="text-xs font-semibold text-slate-700">Lampiran SK (Tabel Data):</label>
+                            <button type="button" onclick="addLampiranSkItem()" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700">+ Tambah Baris</button>
+                        </div>
+                        <div id="lampiran-sk-container" class="space-y-2 max-h-48 overflow-y-auto">
+                            <div class="grid grid-cols-12 gap-1 bg-slate-50 p-2 rounded text-xs items-center lampiran-sk-row">
+                                <input type="text" value="1" class="col-span-1 border rounded p-1 text-center l-no" oninput="updatePreview()">
+                                <input type="text" value="Elly Sumantri, S.Pd." class="col-span-4 border rounded p-1 l-nama" oninput="updatePreview()">
+                                <input type="text" value="Kepala Sekolah" class="col-span-4 border rounded p-1 l-tugas" oninput="updatePreview()">
+                                <input type="text" value="24" class="col-span-2 border rounded p-1 text-center l-jam" oninput="updatePreview()">
+                                <button type="button" onclick="this.closest('.lampiran-sk-row').remove(); updatePreview();" class="col-span-1 text-red-600 font-bold text-center">×</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= SURAT PERJANJIAN KERJA SAMA (MoU) BUILDER ================= -->
+                <div id="builder-mou" class="space-y-4 bg-amber-50 p-4 rounded-xl border border-amber-200 hidden">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-semibold text-sm text-amber-900">Perjanjian Kerja Sama (MoU)</h3>
+                        <button type="button" onclick="swapPihak()" class="text-xs bg-amber-600 text-white px-2.5 py-1.5 rounded shadow hover:bg-amber-700 font-medium">🔄 Tukar Pihak 1 ⇄ 2</button>
+                    </div>
+
+                    <!-- Pihak 1 -->
+                    <div class="space-y-2 bg-white p-3 rounded-lg border border-amber-100">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase">Pihak Kesatu (Lembaga Utama)</h4>
+                        <input type="text" id="mou-p1-nama" value="Ust. H. Muhammad Ridwan, S.Pd.I., M.Pd." class="w-full text-xs border rounded p-1.5" oninput="updatePreview()">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="mou-p1-niy" value="198506122010011009" class="text-xs border rounded p-1.5" placeholder="NIY/NIK" oninput="updatePreview()">
+                            <input type="text" id="mou-p1-jabatan" value="Kepala Sekolah" class="text-xs border rounded p-1.5" placeholder="Jabatan" oninput="updatePreview()">
+                        </div>
+                        <input type="text" id="mou-p1-nomor" value="042.B/KRJS/SDITQ-YSITQ/XI/2026" class="w-full text-xs border rounded p-1.5" placeholder="Nomor Surat Pihak 1" oninput="updatePreview()">
+                    </div>
+
+                    <!-- Pihak 2 -->
+                    <div class="space-y-2 bg-white p-3 rounded-lg border border-amber-100">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase">Pihak Kedua (Mitra)</h4>
+                        <input type="text" id="mou-p2-instansi" value="PERPUSTAKAAN DAERAH KABUPATEN BANYUASIN" class="w-full text-xs border rounded p-1.5 font-semibold" placeholder="Nama Instansi Mitra" oninput="updatePreview()">
+                        <input type="text" id="mou-p2-nama" value="Drs. H. Ahmad Dahlan, M.Si." class="w-full text-xs border rounded p-1.5" placeholder="Nama Pimpinan/Perwakilan" oninput="updatePreview()">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="mou-p2-nik" value="196801011990031005" class="text-xs border rounded p-1.5" placeholder="NIP/NIK" oninput="updatePreview()">
+                            <input type="text" id="mou-p2-jabatan" value="Kepala Dinas Perpustakaan" class="text-xs border rounded p-1.5" placeholder="Jabatan" oninput="updatePreview()">
+                        </div>
+                        <input type="text" id="mou-p2-nomor" value="041/PERPUSDA/XI/2026" class="w-full text-xs border rounded p-1.5" placeholder="Nomor Surat Pihak 2" oninput="updatePreview()">
+                        <textarea id="mou-p2-alamat" class="w-full text-xs border rounded p-1.5" rows="2" oninput="updatePreview()">Jl. Lintas Timur Komplek Perkantoran Pemkab Banyuasin Pangkalan Balai</textarea>
+                    </div>
+
+                    <!-- Substansi MoU -->
+                    <div class="space-y-2 bg-white p-3 rounded-lg border border-amber-100">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase">Substansi & Pasal</h4>
+                        <div>
+                            <label class="text-[11px] text-slate-500">Maksud Perjanjian (Pasal 1 Ayat 1)</label>
+                            <textarea id="mou-pasal1-maksud" class="w-full text-xs border rounded p-1.5" rows="2" oninput="updatePreview()">Para Pihak sepakat untuk mengadakan kerja sama dalam bidang Pengembangan Sumber Daya Perpustakaan Sekolah dan Literasi Peserta Didik.</textarea>
+                        </div>
+                        <div>
+                            <label class="text-[11px] text-slate-500">Jangka Waktu (Tahun)</label>
+                            <input type="number" id="mou-jangka-waktu" value="2" class="w-full text-xs border rounded p-1.5" oninput="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ================= SURAT KONTRAK KERJA TRAINEE BUILDER ================= -->
+                <div id="builder-kontrak" class="space-y-4 bg-emerald-50 p-4 rounded-xl border border-emerald-200 hidden">
+                    <h3 class="font-semibold text-sm text-emerald-900">Format Kontrak Kerja Trainee / Staf</h3>
+                    <div class="space-y-2 bg-white p-3 rounded-lg border border-emerald-100">
+                        <h4 class="text-xs font-bold text-slate-700 uppercase">Data Karyawan / Trainee (Pihak Kedua)</h4>
+                        <input type="text" id="kontrak-nama" value="Marlinda, S.Pd." class="w-full text-xs border rounded p-1.5" placeholder="Nama Lengkap" oninput="updatePreview()">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="kontrak-nik" value="1607035011030006" class="text-xs border rounded p-1.5" placeholder="NIK" oninput="updatePreview()">
+                            <input type="text" id="kontrak-ttl" value="Sakatiga, 10 November 2003" class="text-xs border rounded p-1.5" placeholder="Tempat, Tgl Lahir" oninput="updatePreview()">
+                        </div>
+                        <input type="text" id="kontrak-jabatan" value="Guru/Pendidik dengan status Trainee" class="w-full text-xs border rounded p-1.5" placeholder="Jabatan / Pekerjaan" oninput="updatePreview()">
+                        <input type="text" id="kontrak-hp" value="083153067059" class="w-full text-xs border rounded p-1.5" placeholder="No HP" oninput="updatePreview()">
+                        <textarea id="kontrak-alamat" class="w-full text-xs border rounded p-1.5" rows="2" oninput="updatePreview()">Jl. Padat Karya Dusun II Sakatiga RT 01 Desa Santan Sari, Kec. Sembawa, Kab. Banyuasin</textarea>
+                    </div>
+                </div>
+
+                <!-- Tembusan Surat Utama (Bawah Kiri) -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="font-semibold text-sm text-slate-700">Tembusan Surat (Bawah Kiri)</h3>
+                        <button type="button" onclick="addGeneralTembusanItem()" class="text-xs bg-indigo-600 text-white px-2 py-1 rounded hover:bg-indigo-700">+ Tambah Tembusan</button>
+                    </div>
+                    <div id="general-tembusan-container" class="space-y-2">
+                        <div class="flex items-center space-x-2">
+                            <input type="text" value="Ketua Yayasan SIT Qudwah Sungai Rengit" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white general-tembusan-input" oninput="updatePreview()">
+                            <button type="button" onclick="this.parentElement.remove(); updatePreview();" class="text-red-600 text-xs px-2">Hapus</button>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <input type="text" value="Korwil Dinas Pendidikan dan Kebudayaan Kec. Talang Kelapa" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white general-tembusan-input" oninput="updatePreview()">
+                            <button type="button" onclick="this.parentElement.remove(); updatePreview();" class="text-red-600 text-xs px-2">Hapus</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Standard Body / Content Input -->
+                <div id="builder-standard" class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h3 class="font-semibold text-sm text-slate-700">Isi Surat / Paragraf Utama</h3>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-xs text-slate-500">Paragraf Pembuka</label>
+                            <textarea id="input-paragraf-pembuka" class="w-full text-xs border border-slate-300 rounded p-2 bg-white" rows="2" oninput="updatePreview()">Yang bertanda tangan di bawah ini Kepala Sekolah Islam Terpadu Qudwah Sungai Rengit, dengan ini menerangkan bahwa:</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500">Isi / Maksud Surat</label>
+                            <textarea id="input-paragraf-isi" class="w-full text-xs border border-slate-300 rounded p-2 bg-white" rows="3" oninput="updatePreview()">Nama tersebut di atas adalah benar-benar siswa/guru yang aktif melaksanakan tugas di lembaga kami dengan baik dan penuh tanggung jawab.</textarea>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500">Paragraf Penutup</label>
+                            <textarea id="input-paragraf-penutup" class="w-full text-xs border border-slate-300 rounded p-2 bg-white" rows="2" oninput="updatePreview()">Demikian surat keterangan ini dibuat untuk dapat dipergunakan sebagaimana mestinya.</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Signer Setup -->
+                <div class="space-y-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h3 class="font-semibold text-sm text-slate-700">Penandatangan Surat</h3>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="block text-xs text-slate-500">Nama Penandatangan</label>
+                            <input type="text" id="input-ttd-nama" value="Elly Sumantri, S.Pd." class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white font-semibold" oninput="updatePreview()">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="block text-xs text-slate-500">NIY / NIP</label>
+                                <input type="text" id="input-ttd-niy" value="1986201700001" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white" oninput="updatePreview()">
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-500">Jabatan</label>
+                                <input type="text" id="input-ttd-jabatan" value="Kepala Sekolah" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white" oninput="updatePreview()">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs text-slate-500">Kota Lokasi Penetapan</label>
+                            <input type="text" id="input-lokasi" value="Sungai Rengit" class="w-full text-xs border border-slate-300 rounded p-1.5 bg-white" oninput="updatePreview()">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Right Panel: Live A4 Preview Workspace -->
+        <div class="flex-1 bg-slate-200 overflow-y-auto p-6 flex flex-col items-center justify-start relative">
+            <div class="mb-4 text-xs font-semibold text-slate-500 uppercase tracking-widest no-print">Pratinjau Kertas A4 Resmi</div>
+
+            <!-- A4 Document Wrapper -->
+            <div id="a4-sheet" class="bg-white shadow-2xl rounded-sm w-[210mm] min-h-[297mm] p-[20mm] flex flex-col justify-between relative text-slate-900 box-border text-[11pt] leading-relaxed">
+                
+                <div>
+                    <!-- KOP SURAT (Standard) -->
+                    <div id="layout-standard-kop" class="border-b-4 border-double border-slate-900 pb-3 mb-6">
+                        <div class="flex items-center justify-between">
+                            <div class="w-20 h-20 flex-shrink-0 flex items-center justify-center border-2 border-slate-800 rounded-full">
+                                <span class="font-bold text-xs text-center">LOGO</span>
+                            </div>
+                            <div class="text-center flex-1 px-3">
+                                <h3 id="prev-yayasan" class="text-sm font-bold uppercase tracking-wider">YAYASAN KELUARGA KITA SUNGAI RENGIT</h3>
+                                <h2 id="prev-lembaga" class="text-lg font-extrabold uppercase tracking-wide text-indigo-900">SEKOLAH ISLAM TERPADU QUDWAH SUNGAI RENGIT</h2>
+                                <p class="text-[9pt] font-medium mt-0.5">NPSN: <span id="prev-npsn">69987654</span> • Email: <span id="prev-email">admin@sditqudwah.sch.id</span> • Telp: <span id="prev-telp">(0711) 765432</span></p>
+                                <p class="text-[9pt]" id="prev-alamat">Jl. Palembang - Betung Km. 32 Sungai Rengit Kec. Talang Kelapa Banyuasin</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- KOP SURAT (Untuk MoU / Kontrak - Dual Pihak) -->
+                    <div id="layout-mou-kop" class="hidden text-center border-b-2 border-slate-900 pb-4 mb-6">
+                        <h3 class="text-sm font-bold uppercase text-slate-600 tracking-widest">SURAT PERJANJIAN KERJA SAMA (MoU)</h3>
+                        <h2 class="text-base font-extrabold uppercase tracking-wide text-indigo-900 mt-1">ANTARA <span id="prev-mou-p1-title">SEKOLAH ISLAM TERPADU QUDWAH SUNGAI RENGIT</span> DENGAN <span id="prev-mou-p2-title">PERPUSTAKAAN DAERAH KABUPATEN BANYUASIN</span></h2>
+                        <p class="text-xs font-mono mt-1">Nomor Pihak I: <span id="prev-mou-no1">042.B/KRJS/SDITQ-YSITQ/XI/2026</span></p>
+                        <p class="text-xs font-mono">Nomor Pihak II: <span id="prev-mou-no2">041/PERPUSDA/XI/2026</span></p>
+                    </div>
+
+                    <!-- JENIS SURAT & NOMOR (Standard & SK) -->
+                    <div id="layout-standard-header" class="text-center my-4 space-y-1">
+                        <h2 id="prev-jenis-surat-title" class="font-bold uppercase underline text-sm tracking-wide">SURAT KETERANGAN</h2>
+                        <p class="text-xs font-mono">Nomor: <span id="prev-nomor-surat">042.B/SDITQ-YSITQ/XI/2026</span></p>
+                        <div id="prev-tentang-wrapper" class="pt-1">
+                            <p class="text-xs uppercase font-semibold">TENTANG</p>
+                            <p id="prev-tentang" class="text-xs font-bold uppercase">PEMBENTUKAN PANITIA ASESMEN AKHIR SEMESTER</p>
+                        </div>
+                    </div>
+
+                    <!-- ================= SURAT KEPUTUSAN BODY ================= -->
+                    <div id="prev-sk-body" class="space-y-3 text-justify hidden">
+                        <div class="space-y-1">
+                            <p class="font-bold uppercase">Menimbang:</p>
+                            <div id="sk-prev-menimbang" class="space-y-1 pl-4"></div>
+                        </div>
+                        <div class="space-y-1 pt-2">
+                            <p class="font-bold uppercase">Mengingat:</p>
+                            <div id="sk-prev-mengingat" class="space-y-1 pl-4"></div>
+                        </div>
+                        <div id="sk-prev-memperhatikan-wrapper" class="space-y-1 pt-2 hidden">
+                            <p class="font-bold uppercase">Memperhatikan:</p>
+                            <div id="sk-prev-memperhatikan" class="space-y-1 pl-4"></div>
+                        </div>
+                        <div class="text-center font-bold uppercase py-2">MEMUTUSKAN:</div>
+                        <div class="space-y-1">
+                            <p class="font-bold uppercase">Menetapkan:</p>
+                        </div>
+                        <div id="sk-prev-diktum-container" class="space-y-2 pl-4"></div>
+                    </div>
+
+                    <!-- ================= SURAT PERJANJIAN KERJA SAMA (MoU) BODY ================= -->
+                    <div id="prev-mou-body" class="space-y-3 text-justify hidden text-xs leading-relaxed">
+                        <p>Pada hari ini, <span id="prev-mou-hari">Jumat</span> tanggal <span id="prev-mou-tgl-terbilang">Dua</span> bulan <span id="prev-mou-bln-terbilang">Oktober</span> tahun <span id="prev-mou-thn-terbilang">Dua Ribu Dua Puluh Enam</span> (<span id="prev-mou-tgl-angka">02-10-2026</span>), bertempat di Sungai Rengit, kami yang bertanda tangan di bawah ini:</p>
+                        
+                        <!-- Pihak Kesatu Detail -->
+                        <div class="pl-3 space-y-0.5">
+                            <p class="font-bold">I. PIHAK KESATU:</p>
+                            <table class="w-full pl-4">
+                                <tr><td class="w-32">Nama</td><td>: <span id="prev-mou-p1-nama">Ust. H. Muhammad Ridwan, S.Pd.I., M.Pd.</span></td></tr>
+                                <tr><td>NIY / NIK</td><td>: <span id="prev-mou-p1-niy">198506122010011009</span></td></tr>
+                                <tr><td>Jabatan</td><td>: <span id="prev-mou-p1-jabatan">Kepala Sekolah</span></td></tr>
+                                <tr><td>Instansi</td><td>: SIT Qudwah Sungai Rengit</td></tr>
+                            </table>
+                            <p class="pt-1">Dalam hal ini bertindak untuk dan atas nama Sekolah Islam Terpadu Qudwah Sungai Rengit, selanjutnya disebut <span class="font-semibold">PIHAK KESATU</span>.</p>
+                        </div>
+
+                        <!-- Pihak Kedua Detail -->
+                        <div class="pl-3 space-y-0.5 pt-2">
+                            <p class="font-bold">II. PIHAK KEDUA:</p>
+                            <table class="w-full pl-4">
+                                <tr><td class="w-32">Nama</td><td>: <span id="prev-mou-p2-nama">Drs. H. Ahmad Dahlan, M.Si.</span></td></tr>
+                                <tr><td>NIK / NIP</td><td>: <span id="prev-mou-p2-nik">196801011990031005</span></td></tr>
+                                <tr><td>Jabatan</td><td>: <span id="prev-mou-p2-jabatan">Kepala Dinas Perpustakaan</span></td></tr>
+                                <tr><td>Instansi</td><td>: <span id="prev-mou-p2-instansi-val">PERPUSTAKAAN DAERAH KABUPATEN BANYUASIN</span></td></tr>
+                                <tr><td>Alamat</td><td>: <span id="prev-mou-p2-alamat-val">Jl. Lintas Timur Komplek Perkantoran Pemkab Banyuasin Pangkalan Balai</span></td></tr>
+                            </table>
+                            <p class="pt-1">Dalam hal ini bertindak untuk dan atas nama instansi tersebut, selanjutnya disebut <span class="font-semibold">PIHAK KEDUA</span>.</p>
+                        </div>
+
+                        <p class="pt-2">Kedua belah pihak secara bersama-sama sepakat mengadakan Perjanjian Kerja Sama dengan ketentuan pasal-pasal sebagai berikut:</p>
+
+                        <!-- Pasal-Pasal MoU -->
+                        <div class="space-y-2 pt-1">
+                            <p class="text-center font-bold uppercase">PASAL 1<br>MAKSUD DAN TUJUAN</p>
+                            <p>(1) <span id="prev-mou-p1-maksud">Para Pihak sepakat untuk mengadakan kerja sama dalam bidang Pengembangan Sumber Daya Perpustakaan Sekolah dan Literasi Peserta Didik.</span></p>
+                            <p>(2) Tujuan kerja sama ini adalah untuk meningkatkan minat baca dan mutu pengelolaan perpustakaan sekolah.</p>
+
+                            <p class="text-center font-bold uppercase pt-2">PASAL 2<br>JANGKA WAKTU</p>
+                            <p>Perjanjian kerja sama ini berlaku untuk jangka waktu <span id="prev-mou-jw-angka">2</span> (<span id="prev-mou-jw-terbilang">dua</span>) tahun terhitung sejak tanggal ditandatanganinya naskah perjanjian ini.</p>
+                        </div>
+                    </div>
+
+                    <!-- ================= KONTRAK KERJA TRAINEE BODY ================= -->
+                    <div id="prev-kontrak-body" class="space-y-3 text-justify hidden text-xs leading-relaxed">
+                        <p class="text-center font-bold uppercase text-sm">KONTRAK KERJA TRAINEE / STAF<br>Nomor: <span id="prev-kontrak-nomor">009/KT/HRD.YSITQSR/SR/X/2026</span></p>
+                        <p>Yang bertanda tangan di bawah ini:</p>
+                        <div class="pl-4 space-y-1">
+                            <p><b>I. PIHAK PERTAMA:</b> Ketua Yayasan Keluarga Kita Sungai Rengit</p>
+                            <p><b>II. PIHAK KEDUA:</b></p>
+                            <table class="w-full pl-4">
+                                <tr><td class="w-36">Nama Lengkap</td><td>: <span id="prev-k-nama">Marlinda, S.Pd.</span></td></tr>
+                                <tr><td>NIK</td><td>: <span id="prev-k-nik">1607035011030006</span></td></tr>
+                                <tr><td>Tempat, Tgl. Lahir</td><td>: <span id="prev-k-ttl">Sakatiga, 10 November 2003</span></td></tr>
+                                <tr><td>Jabatan</td><td>: <span id="prev-k-jabatan">Guru/Pendidik dengan status Trainee</span></td></tr>
+                                <tr><td>Telepon / HP</td><td>: <span id="prev-k-hp">083153067059</span></td></tr>
+                                <tr><td>Alamat</td><td>: <span id="prev-k-alamat">Jl. Padat Karya Dusun II Sakatiga RT 01 Desa Santan Sari</span></td></tr>
+                            </table>
+                        </div>
+                        <p>Pada hari ini, Jumat tanggal Dua, bulan Oktober, tahun Dua Ribu Dua Puluh Enam, kedua belah pihak sepakat mengadakan kontrak kerja dengan ketentuan yang berlaku di lingkungan Yayasan.</p>
+                    </div>
+
+                    <!-- ================= STANDARD CORRESPONDENCE BODY ================= -->
+                    <div id="prev-standard-body" class="space-y-4 text-justify my-6">
+                        <p id="prev-paragraf-pembuka">Yang bertanda tangan di bawah ini Kepala Sekolah Islam Terpadu Qudwah Sungai Rengit, dengan ini menerangkan bahwa:</p>
+                        <div id="prev-paragraf-isi" class="pl-6 space-y-1 font-medium">
+                            Nama tersebut di atas adalah benar-benar siswa/guru yang aktif melaksanakan tugas di lembaga kami dengan baik dan penuh tanggung jawab.
+                        </div>
+                        <p id="prev-paragraf-penutup">Demikian surat keterangan ini dibuat untuk dapat dipergunakan sebagaimana mestinya.</p>
+                    </div>
+
+                </div>
+
+                <!-- Footer Signer Section -->
+                <div>
+                    <!-- Standard / SK / Kontrak Single Signer -->
+                    <div id="section-single-signer" class="flex justify-between items-end mt-12 pt-4">
+                        <div class="text-[10pt] space-y-0.5 self-start">
+                            <p class="font-semibold underline">Tembusan:</p>
+                            <div id="prev-general-tembusan-list-std" class="space-y-0.5">
+                                <p>1. Ketua Yayasan SIT Qudwah Sungai Rengit</p>
+                                <p>2. Korwil Dinas Pendidikan dan Kebudayaan Kec. Talang Kelapa</p>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <p><span id="prev-lokasi">Sungai Rengit</span>, <span id="prev-tanggal-bawah">2 Oktober 2026</span></p>
+                            <p id="prev-ttd-jabatan" class="font-semibold mb-16">Kepala Sekolah</p>
+                            <p id="prev-ttd-nama" class="font-bold underline">Elly Sumantri, S.Pd.</p>
+                            <p>NIY. <span id="prev-ttd-niy">1986201700001</span></p>
+                        </div>
+                    </div>
+
+                    <!-- Dual Signer Section (MoU) -->
+                    <div id="section-dual-signer" class="flex justify-between items-start mt-12 pt-4 hidden text-xs">
+                        <div class="text-center w-5/12">
+                            <p class="font-bold mb-1 uppercase" id="prev-label-p1">PIHAK KESATU</p>
+                            <p class="mb-16">Kepala SIT Qudwah Sungai Rengit</p>
+                            <p class="font-bold underline" id="prev-sign-p1-name">Ust. H. Muhammad Ridwan, S.Pd.I., M.Pd.</p>
+                            <p>NIY. <span id="prev-sign-p1-niy">198506122010011009</span></p>
+                        </div>
+                        <div class="text-center w-5/12">
+                            <p class="font-bold mb-1 uppercase" id="prev-label-p2">PIHAK KEDUA</p>
+                            <p class="mb-16" id="prev-sign-p2-jabatan">Kepala Dinas Perpustakaan</p>
+                            <p class="font-bold underline" id="prev-sign-p2-name">Drs. H. Ahmad Dahlan, M.Si.</p>
+                            <p>NIP. <span id="prev-sign-p2-nik">196801011990031005</span></p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Script Application Logic -->
+    <script>
+        const bulanNama = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+        let isPihakSwapped = false;
+
+        function terbilang(angka) {
+            const list = ["", "satu", "dua", "tiga", "empat", "lima", "enam", "tujuh", "delapan", "sembilan", "sepuluh", "sebelas"];
+            if (angka < 12) return list[angka];
+            if (angka < 20) return terbilang(angka - 10) + " belas";
+            if (angka < 100) return terbilang(Math.floor(angka / 10)) + " puluh " + terbilang(angka % 10);
+            return angka.toString();
+        }
+
+        function onJenisSuratChange() {
+            const val = document.getElementById('input-jenis-surat').value;
+            const builderSk = document.getElementById('builder-sk');
+            const builderMou = document.getElementById('builder-mou');
+            const builderKontrak = document.getElementById('builder-kontrak');
+            const builderStandard = document.getElementById('builder-standard');
+            
+            const stdKop = document.getElementById('layout-standard-kop');
+            const mouKop = document.getElementById('layout-mou-kop');
+            const stdHeader = document.getElementById('layout-standard-header');
+            const stdBody = document.getElementById('prev-standard-body');
+            const skBody = document.getElementById('prev-sk-body');
+            const mouBody = document.getElementById('prev-mou-body');
+            const kontrakBody = document.getElementById('prev-kontrak-body');
+            const singleSigner = document.getElementById('section-single-signer');
+            const dualSigner = document.getElementById('section-dual-signer');
+
+            // Hide all first
+            if(builderSk) builderSk.classList.add('hidden');
+            if(builderMou) builderMou.classList.add('hidden');
+            if(builderKontrak) builderKontrak.classList.add('hidden');
+            if(builderStandard) builderStandard.classList.remove('hidden');
+            if(stdKop) stdKop.classList.remove('hidden');
+            if(mouKop) mouKop.classList.add('hidden');
+            if(stdHeader) stdHeader.classList.remove('hidden');
+            if(stdBody) stdBody.classList.remove('hidden');
+            if(skBody) skBody.classList.add('hidden');
+            if(mouBody) mouBody.classList.add('hidden');
+            if(kontrakBody) kontrakBody.classList.add('hidden');
+            if(singleSigner) singleSigner.classList.remove('hidden');
+            if(dualSigner) dualSigner.classList.add('hidden');
+
+            const titleEl = document.getElementById('prev-jenis-surat-title');
+
+            if (val === '4') { // SK
+                if(builderSk) builderSk.classList.remove('hidden');
+                if(stdBody) stdBody.classList.add('hidden');
+                if(skBody) skBody.classList.remove('hidden');
+                if(titleEl) titleEl.innerText = "SURAT KEPUTUSAN";
+            } else if (val === '6') { // MoU
+                if(builderMou) builderMou.classList.remove('hidden');
+                if(stdKop) stdKop.classList.add('hidden');
+                if(mouKop) mouKop.classList.remove('hidden');
+                if(stdHeader) stdHeader.classList.add('hidden');
+                if(stdBody) stdBody.classList.add('hidden');
+                if(mouBody) mouBody.classList.remove('hidden');
+                if(singleSigner) singleSigner.classList.add('hidden');
+                if(dualSigner) dualSigner.classList.remove('hidden');
+            } else if (val === '12') { // Kontrak
+                if(builderKontrak) builderKontrak.classList.remove('hidden');
+                if(stdBody) stdBody.classList.add('hidden');
+                if(kontrakBody) kontrakBody.classList.remove('hidden');
+                if(titleEl) titleEl.innerText = "KONTRAK KERJA TRAINEE";
+            } else if (val === '3') {
+                if(titleEl) titleEl.innerText = "SURAT PERINTAH TUGAS";
+            } else if (val === '5') {
+                if(titleEl) titleEl.innerText = "SURAT PENGANTAR";
+            } else if (val === '9') {
+                if(titleEl) titleEl.innerText = "SURAT PEMBERITAHUAN";
+            } else if (val === '10') {
+                if(titleEl) titleEl.innerText = "SURAT UNDANGAN";
+            } else if (val === '11') {
+                if(titleEl) titleEl.innerText = "SURAT PERMOHONAN";
+            } else {
+                if(titleEl) titleEl.innerText = "SURAT KETERANGAN";
+            }
+            updatePreview();
+        }
+
+        function swapPihak() {
+            isPihakSwapped = !isPihakSwapped;
+            updatePreview();
+        }
+
+        function addSkMenimbangItem() {
+            const container = document.getElementById('sk-menimbang-container');
+            if(!container) return;
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-2';
+            div.innerHTML = `<input type="text" value="Poin menimbang baru..." class="w-full text-xs border rounded p-1.5 bg-white sk-menimbang-input" oninput="updatePreview()"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="text-red-600 text-xs px-2">Hapus</button>`;
+            container.appendChild(div);
+            updatePreview();
+        }
+
+        function addSkMengingatItem() {
+            const container = document.getElementById('sk-mengingat-container');
+            if(!container) return;
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-2';
+            div.innerHTML = `<input type="text" value="Poin mengingat baru..." class="w-full text-xs border rounded p-1.5 bg-white sk-mengingat-input" oninput="updatePreview()"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="text-red-600 text-xs px-2">Hapus</button>`;
+            container.appendChild(div);
+            updatePreview();
+        }
+
+        function addSkMemperhatikanItem() {
+            const container = document.getElementById('sk-memperhatikan-container');
+            if(!container) return;
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-2';
+            div.innerHTML = `<input type="text" value="Poin memperhatikan baru..." class="w-full text-xs border rounded p-1.5 bg-white sk-memperhatikan-input" oninput="updatePreview()"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="text-red-600 text-xs px-2">Hapus</button>`;
+            container.appendChild(div);
+            updatePreview();
+        }
+
+        function addDiktumItem() {
+            const container = document.getElementById('diktum-container');
+            if(!container) return;
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-2';
+            div.innerHTML = `<input type="text" value="KEDUA" class="w-24 text-xs font-bold border rounded p-1.5 bg-white diktum-label" oninput="updatePreview()"><input type="text" value="Isi diktum..." class="w-full text-xs border rounded p-1.5 bg-white diktum-val" oninput="updatePreview()"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="text-red-600 text-xs px-2">Hapus</button>`;
+            container.appendChild(div);
+            updatePreview();
+        }
+
+        function addLampiranSkItem() {
+            const container = document.getElementById('lampiran-sk-container');
+            if(!container) return;
+            const div = document.createElement('div');
+            div.className = 'grid grid-cols-12 gap-1 bg-slate-50 p-2 rounded text-xs items-center lampiran-sk-row';
+            div.innerHTML = `<input type="text" value="2" class="col-span-1 border rounded p-1 text-center l-no" oninput="updatePreview()"><input type="text" value="Nama Guru" class="col-span-4 border rounded p-1 l-nama" oninput="updatePreview()"><input type="text" value="Wali Kelas" class="col-span-4 border rounded p-1 l-tugas" oninput="updatePreview()"><input type="text" value="24" class="col-span-2 border rounded p-1 text-center l-jam" oninput="updatePreview()"><button type="button" onclick="this.closest('.lampiran-sk-row').remove(); updatePreview();" class="col-span-1 text-red-600 font-bold text-center">×</button>`;
+            container.appendChild(div);
+            updatePreview();
+        }
+
+        function addGeneralTembusanItem() {
+            const container = document.getElementById('general-tembusan-container');
+            if(!container) return;
+            const div = document.createElement('div');
+            div.className = 'flex items-center space-x-2';
+            div.innerHTML = `<input type="text" value="Arsip" class="w-full text-xs border rounded p-1.5 bg-white general-tembusan-input" oninput="updatePreview()"><button type="button" onclick="this.parentElement.remove(); updatePreview();" class="text-red-600 text-xs px-2">Hapus</button>`;
+            container.appendChild(div);
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.innerText = val; };
+            
+            setVal('prev-yayasan', document.getElementById('input-yayasan')?.value || '');
+            setVal('prev-lembaga', document.getElementById('input-lembaga')?.value || '');
+            setVal('prev-npsn', document.getElementById('input-npsn')?.value || '');
+            setVal('prev-telp', document.getElementById('input-telp')?.value || '');
+            setVal('prev-alamat', document.getElementById('input-alamat-lembaga')?.value || '');
+            setVal('prev-email', document.getElementById('input-email')?.value || '');
+            setVal('prev-nomor-surat', document.getElementById('input-nomor-surat')?.value || '');
+            setVal('prev-tentang', document.getElementById('input-tentang')?.value || '');
+            setVal('prev-lokasi', document.getElementById('input-lokasi')?.value || '');
+            setVal('prev-ttd-nama', document.getElementById('input-ttd-nama')?.value || '');
+            setVal('prev-ttd-niy', document.getElementById('input-ttd-niy')?.value || '');
+            setVal('prev-ttd-jabatan', document.getElementById('input-ttd-jabatan')?.value || '');
+
+            const tglVal = document.getElementById('input-tanggal')?.value;
+            if (tglVal) {
+                const parts = tglVal.split('-');
+                if (parts.length === 3) {
+                    const formatted = `${parseInt(parts[2])} ${bulanNama[parseInt(parts[1])-1]} ${parts[0]}`;
+                    setVal('prev-tanggal-bawah', formatted);
+                }
+            }
+
+            setVal('prev-paragraf-pembuka', document.getElementById('input-paragraf-pembuka')?.value || '');
+            setVal('prev-paragraf-isi', document.getElementById('input-paragraf-isi')?.value || '');
+            setVal('prev-paragraf-penutup', document.getElementById('input-paragraf-penutup')?.value || '');
+
+            const skMenimbang = document.getElementById('sk-prev-menimbang');
+            if (skMenimbang) {
+                skMenimbang.innerHTML = '';
+                document.querySelectorAll('.sk-menimbang-input').forEach((inp, i) => {
+                    skMenimbang.innerHTML += `<div class="grid grid-cols-12 gap-1"><div class="col-span-1">${i+1}.</div><div class="col-span-11">${inp.value}</div></div>`;
+                });
+            }
+
+            const skMengingat = document.getElementById('sk-prev-mengingat');
+            if (skMengingat) {
+                skMengingat.innerHTML = '';
+                document.querySelectorAll('.sk-mengingat-input').forEach((inp, i) => {
+                    skMengingat.innerHTML += `<div class="grid grid-cols-12 gap-1"><div class="col-span-1">${i+1}.</div><div class="col-span-11">${inp.value}</div></div>`;
+                });
+            }
+
+            const skMemperhatikan = document.getElementById('sk-prev-memperhatikan');
+            const wrapperMemperhatikan = document.getElementById('sk-prev-memperhatikan-wrapper');
+            const memperInps = document.querySelectorAll('.sk-memperhatikan-input');
+            if (skMemperhatikan && wrapperMemperhatikan) {
+                if (memperInps.length > 0) {
+                    wrapperMemperhatikan.classList.remove('hidden');
+                    skMemperhatikan.innerHTML = '';
+                    memperInps.forEach((inp, i) => {
+                        skMemperhatikan.innerHTML += `<div class="grid grid-cols-12 gap-1"><div class="col-span-1">${i+1}.</div><div class="col-span-11">${inp.value}</div></div>`;
+                    });
+                } else {
+                    wrapperMemperhatikan.classList.add('hidden');
+                }
+            }
+
+            const diktumPrev = document.getElementById('sk-prev-diktum-container');
+            if (diktumPrev) {
+                diktumPrev.innerHTML = '';
+                document.querySelectorAll('#diktum-container > div').forEach(row => {
+                    const label = row.querySelector('.diktum-label')?.value || '';
+                    const val = row.querySelector('.diktum-val')?.value || '';
+                    diktumPrev.innerHTML += `<div class="grid grid-cols-12 gap-1 pt-1"><div class="col-span-2 font-semibold uppercase">${label}</div><div class="col-span-1 font-semibold">:</div><div class="col-span-9">${val}</div></div>`;
+                });
+            }
+
+            const p1Name = document.getElementById('mou-p1-nama')?.value || '';
+            const p1Niy = document.getElementById('mou-p1-niy')?.value || '';
+            const p1Jab = document.getElementById('mou-p1-jabatan')?.value || '';
+            const p1Nomor = document.getElementById('mou-p1-nomor')?.value || '';
+            
+            const p2Instansi = document.getElementById('mou-p2-instansi')?.value || '';
+            const p2Name = document.getElementById('mou-p2-nama')?.value || '';
+            const p2Nik = document.getElementById('mou-p2-nik')?.value || '';
+            const p2Jab = document.getElementById('mou-p2-jabatan')?.value || '';
+            const p2Nomor = document.getElementById('mou-p2-nomor')?.value || '';
+            const p2Alamat = document.getElementById('mou-p2-alamat')?.value || '';
+
+            if (isPihakSwapped) {
+                setVal('prev-mou-p1-title', p2Instansi);
+                setVal('prev-mou-p2-title', document.getElementById('input-lembaga')?.value || '');
+                setVal('prev-mou-no1', p2Nomor);
+                setVal('prev-mou-no2', p1Nomor);
+                setVal('prev-sign-p1-name', p2Name);
+                setVal('prev-sign-p1-niy', p2Nik);
+                setVal('prev-sign-p2-name', p1Name);
+                setVal('prev-sign-p2-nik', p1Niy);
+                setVal('prev-sign-p2-jabatan', p1Jab);
+            } else {
+                setVal('prev-mou-p1-title', document.getElementById('input-lembaga')?.value || '');
+                setVal('prev-mou-p2-title', p2Instansi);
+                setVal('prev-mou-no1', p1Nomor);
+                setVal('prev-mou-no2', p2Nomor);
+                setVal('prev-sign-p1-name', p1Name);
+                setVal('prev-sign-p1-niy', p1Niy);
+                setVal('prev-sign-p2-name', p2Name);
+                setVal('prev-sign-p2-nik', p2Nik);
+                setVal('prev-sign-p2-jabatan', p2Jab);
+            }
+
+            setVal('prev-mou-p1-nama', p1Name);
+            setVal('prev-mou-p1-niy', p1Niy);
+            setVal('prev-mou-p1-jabatan', p1Jab);
+            setVal('prev-mou-p2-nama', p2Name);
+            setVal('prev-mou-p2-nik', p2Nik);
+            setVal('prev-mou-p2-jabatan', p2Jab);
+            setVal('prev-mou-p2-instansi-val', p2Instansi);
+            setVal('prev-mou-p2-alamat-val', p2Alamat);
+            setVal('prev-mou-p1-maksud', document.getElementById('mou-pasal1-maksud')?.value || '');
+            
+            const jw = document.getElementById('mou-jangka-waktu')?.value || '2';
+            setVal('prev-mou-jw-angka', jw);
+            setVal('prev-mou-jw-terbilang', terbilang(parseInt(jw) || 2));
+
+            setVal('prev-k-nama', document.getElementById('kontrak-nama')?.value || '');
+            setVal('prev-k-nik', document.getElementById('kontrak-nik')?.value || '');
+            setVal('prev-k-ttl', document.getElementById('kontrak-ttl')?.value || '');
+            setVal('prev-k-jabatan', document.getElementById('kontrak-jabatan')?.value || '');
+            setVal('prev-k-hp', document.getElementById('kontrak-hp')?.value || '');
+            setVal('prev-k-alamat', document.getElementById('kontrak-alamat')?.value || '');
+
+            const genTembusanList = document.getElementById('prev-general-tembusan-list-std');
+            if (genTembusanList) {
+                genTembusanList.innerHTML = '';
+                document.querySelectorAll('.general-tembusan-input').forEach((inp, idx) => {
+                    genTembusanList.innerHTML += `<p>${idx + 1}. ${inp.value}</p>`;
+                });
+            }
+        }
+
+        window.onload = function() {
+            onJenisSuratChange();
+        };
+    </script>
+</body>
+</html>
